@@ -73,3 +73,53 @@ for _, descendant in ipairs(Workspace:GetDescendants()) do
 end
 
 Workspace.DescendantAdded:Connect(optimizeInstance)
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+
+Lighting.GlobalShadows = false
+Lighting.FogEnd = 999999
+Lighting.Brightness = 0
+Lighting.ClockTime = 14
+
+settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+Workspace.StreamingEnabled = true
+
+local function destroyEverything(obj)
+	if obj:IsA("BasePart") or obj:IsA("MeshPart") then
+		obj.Material = Enum.Material.SmoothPlastic
+		obj.CastShadow = false
+		obj.Reflectance = 0
+		obj.Color = Color3.fromRGB(150, 150, 150)
+	elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") then
+		obj:Destroy()
+	elseif obj:IsA("Decal") or obj:IsA("Texture") then
+		obj:Destroy()
+	elseif obj:IsA("SurfaceLight") or obj:IsA("PointLight") or obj:IsA("SpotLight") then
+		obj:Destroy()
+	elseif obj:IsA("Explosion") then
+		obj.Visible = false
+	end
+end
+
+for _, descendant in ipairs(Workspace:GetDescendants()) do
+	pcall(function()
+		destroyEverything(descendant)
+	end)
+end
+
+Workspace.DescendantAdded:Connect(function(obj)
+	pcall(function()
+		destroyEverything(obj)
+	end)
+end)
+
+for _, player in ipairs(Players:GetPlayers()) do
+	if player ~= Players.LocalPlayer and player.Character then
+		for _, part in ipairs(player.Character:GetDescendants()) do
+			if part:IsA("ParticleEmitter") or part:IsA("Trail") or part:IsA("Beam") then
+				part:Destroy()
+			end
+		end
+	end
+end
